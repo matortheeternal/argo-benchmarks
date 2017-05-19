@@ -3,14 +3,10 @@ unit Argo;
 interface
 
 uses
-  SysUtils, Classes, Variants;
+  SysUtils, Classes, Variants,
+  ArgoTypes;
 
 type
-  TFastStringList = class(TStringList)
-  protected
-    function CompareStrings(const S1, S2: string): Integer; override;
-  end;
-
   TJSONValueType = (jtString, jtBoolean, jtInt, jtDouble, jtArray, jtObject);
   JSONExceptionType = (jxTerminated, jxUnexpectedChar, jxStartBracket,
     jxColonExpected, jxCommaExpected);
@@ -101,7 +97,6 @@ type
     Pairs: TFastStringList;
     procedure ParsePair(var P: PWideChar);
     function GetKey(index: Integer): String;
-    procedure SetKey(index: Integer; key: String);
     function GetValue(key: string): TJSONValue;
     function GetValueFromIndex(index: Integer): TJSONValue;
     procedure SetValue(key: String; value: TJSONValue);
@@ -128,7 +123,7 @@ type
     function HasKey(key: string): Boolean;
     procedure Delete(key: string);
     function ToString: string; override;
-    property Keys[index: Integer]: String read GetKey write SetKey;
+    property Keys[index: Integer]: String read GetKey;
     property Values[index: string]: TJSONValue read GetValue write SetValue; default;
     property ValueFromIndex[index: Integer]: TJSONValue read GetValueFromIndex write SetValueFromIndex;
     property Count: Integer read GetCount;
@@ -161,11 +156,6 @@ begin
   if size = 0 then exit;
   GetMem(Result, size);
   StrLCopy(Result, PWideChar(str), size);
-end;
-
-function TFastStringList.CompareStrings(const S1, S2: string): Integer;
-begin
-  Result := CompareStr(S1, S2);
 end;
 
 { === DESERIALIZATION === }
@@ -675,11 +665,6 @@ end;
 function TJSONObject.GetKey(index: Integer): String;
 begin
   Result := Pairs[index];
-end;
-
-procedure TJSONObject.SetKey(index: Integer; key: String);
-begin
-  Pairs[index] := key;
 end;
 
 function TJSONObject.GetValue(key: String): TJSONValue;

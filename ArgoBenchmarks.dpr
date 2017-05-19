@@ -5,7 +5,8 @@ program ArgoBenchmarks;
 uses
   SysUtils, Classes, WinProcs,
   superobject in 'lib\superobject\superobject.pas',
-  Argo in 'lib\Argo\Argo.pas';
+  Argo in 'lib\Argo\Argo.pas',
+  ArgoTypes in 'lib\Argo\ArgoTypes.pas';
 
 type
   TProc = reference to procedure;
@@ -61,6 +62,92 @@ var
 begin
   for i := 0 to count - 1 do
     sl.Add(RandomString(strLen));
+end;
+
+procedure BenchmarkStringList;
+var
+  keys, sl: TStringList;
+begin
+  WriteLn('== TStringList ==');
+
+  keys := TStringList.Create;
+  RandomStringList(8, 1000, keys);
+  Benchmark('Creating 1,000 strings', procedure
+    var
+      i: Integer;
+    begin
+      sl := TStringList.Create;
+      for i := 0 to Pred(keys.Count) do
+        sl.Add(keys[i]);
+    end);
+
+  Benchmark('Finding 10,000 string indexes', procedure
+    var
+      i, n: Integer;
+    begin
+      for i := 0 to 99999 do
+        n := sl.IndexOf(keys[i mod 1000]);
+    end);
+
+  WriteLn(' ');
+end;
+
+procedure BenchmarkFastStringList;
+var
+  keys: TStringList;
+  sl: TFastStringList;
+begin
+  WriteLn('== TFastStringList ==');
+
+  keys := TStringList.Create;
+  RandomStringList(8, 1000, keys);
+  Benchmark('Creating 1,000 strings', procedure
+    var
+      i: Integer;
+    begin
+      sl := TFastStringList.Create;
+      for i := 0 to Pred(keys.Count) do
+        sl.Add(keys[i]);
+    end);
+
+  Benchmark('Finding 10,000 string indexes', procedure
+    var
+      i, n: Integer;
+    begin
+      for i := 0 to 99999 do
+        n := sl.IndexOf(keys[i mod 1000]);
+    end);
+
+  WriteLn(' ');
+end;
+
+procedure BenchmarkArgoTree;
+var
+  keys: TStringList;
+  tree: TArgoTree;
+begin
+  WriteLn('== TArgoTree ==');
+
+  keys := TStringList.Create;
+  RandomStringList(8, 1000, keys);
+  Benchmark('Creating 1,000 strings', procedure
+    var
+      i: Integer;
+    begin
+      tree := TArgoTree.Create;
+      for i := 0 to Pred(keys.Count) do
+        tree.Add(keys[i]);
+    end);
+
+  Benchmark('Finding 10,000 string indexes', procedure
+    var
+      i, n: Integer;
+    begin
+      for i := 0 to 99999 do
+        n := tree[keys[i mod 1000]];
+    end);
+
+  WriteLn(' ');
 end;
 
 procedure BenchmarkDeserialization;
@@ -263,6 +350,9 @@ end;
 
 begin
   try
+    BenchmarkStringList;
+    BenchmarkFastStringList;
+    BenchmarkArgoTree;
     BenchmarkDeserialization;
     BenchmarkDeserializationSO;
     BenchmarkSerialization;
