@@ -81,12 +81,20 @@ begin
         sl.Add(keys[i]);
     end);
 
-  Benchmark('Finding 10,000 string indexes', procedure
+  Benchmark('Finding 2,000 string indexes', procedure
     var
-      i, n: Integer;
+      i: Integer;
+    begin
+      for i := 0 to 1999 do
+        sl.IndexOf(keys[i mod 1000]);
+    end);
+
+  Benchmark('Accessing 10,000 strings', procedure
+    var
+      i: Integer;
     begin
       for i := 0 to 99999 do
-        n := sl.IndexOf(keys[i mod 1000]);
+        sl[i mod 1000];
     end);
 
   WriteLn(' ');
@@ -110,12 +118,20 @@ begin
         sl.Add(keys[i]);
     end);
 
-  Benchmark('Finding 10,000 string indexes', procedure
+  Benchmark('Finding 2,000 string indexes', procedure
     var
-      i, n: Integer;
+      i: Integer;
+    begin
+      for i := 0 to 1999 do
+        sl.IndexOf(keys[i mod 1000]);
+    end);
+
+  Benchmark('Accessing 10,000 strings', procedure
+    var
+      i: Integer;
     begin
       for i := 0 to 99999 do
-        n := sl.IndexOf(keys[i mod 1000]);
+        sl[i mod 1000];
     end);
 
   WriteLn(' ');
@@ -139,12 +155,20 @@ begin
         tree.Add(keys[i]);
     end);
 
-  Benchmark('Finding 10,000 string indexes', procedure
+  Benchmark('Finding 2,000 string indexes', procedure
     var
-      i, n: Integer;
+      i: Integer;
+    begin
+      for i := 0 to 1999 do
+        tree[keys[i mod 1000]];
+    end);
+
+  Benchmark('Accessing 10,000 strings', procedure
+    var
+      i: Integer;
     begin
       for i := 0 to 99999 do
-        n := tree[keys[i mod 1000]];
+        tree.Names[i mod 1000];
     end);
 
   WriteLn(' ');
@@ -312,10 +336,10 @@ begin
 
   Benchmark('Accessing 10,000 top-level integer properties', procedure
     var
-      i, n: Integer;
+      i: Integer;
     begin
       for i := 0 to 99999 do
-        n := obj.I[keys[i mod 1000]];
+        obj.I[keys[i mod 1000]];
     end);
 
   WriteLn(' ');
@@ -341,10 +365,10 @@ begin
 
   Benchmark('Accessing 10,000 top-level integer properties', procedure
     var
-      i, n: Integer;
+      i: Integer;
     begin
       for i := 0 to 99999 do
-        n := obj.I[keys[i mod 1000]];
+        obj.I[keys[i mod 1000]];
     end);
 end;
 
