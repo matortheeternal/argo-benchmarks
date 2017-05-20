@@ -10,6 +10,9 @@ uses
 
 type
   TProc = reference to procedure;
+
+var
+  keys: TStringList;
   
 procedure Benchmark(title: String; callback: TProc);
 var
@@ -64,15 +67,19 @@ begin
     sl.Add(RandomString(strLen));
 end;
 
+procedure CreateKeys;
+begin
+  keys := TStringList.Create;
+  RandomStringList(8, 10000, keys);
+end;
+
 procedure BenchmarkStringList;
 var
-  keys, sl: TStringList;
+  sl: TStringList;
 begin
   WriteLn('== TStringList ==');
 
-  keys := TStringList.Create;
-  RandomStringList(8, 1000, keys);
-  Benchmark('Creating 1,000 strings', procedure
+  Benchmark('Creating 10,000 strings', procedure
     var
       i: Integer;
     begin
@@ -81,35 +88,33 @@ begin
         sl.Add(keys[i]);
     end);
 
-  Benchmark('Finding 2,000 string indexes', procedure
+  Benchmark('Finding 5,000 string indexes', procedure
     var
       i: Integer;
     begin
-      for i := 0 to 1999 do
-        sl.IndexOf(keys[i mod 1000]);
+      for i := 0 to 4999 do
+        sl.IndexOf(keys[i]);
     end);
 
-  Benchmark('Accessing 10,000 strings', procedure
+  Benchmark('Accessing 100,000 strings', procedure
     var
       i: Integer;
     begin
       for i := 0 to 99999 do
-        sl[i mod 1000];
+        sl[i mod 10000];
     end);
 
+  sl.Free;
   WriteLn(' ');
 end;
 
 procedure BenchmarkFastStringList;
 var
-  keys: TStringList;
   sl: TFastStringList;
 begin
   WriteLn('== TFastStringList ==');
 
-  keys := TStringList.Create;
-  RandomStringList(8, 1000, keys);
-  Benchmark('Creating 1,000 strings', procedure
+  Benchmark('Creating 10,000 strings', procedure
     var
       i: Integer;
     begin
@@ -118,35 +123,33 @@ begin
         sl.Add(keys[i]);
     end);
 
-  Benchmark('Finding 2,000 string indexes', procedure
+  Benchmark('Finding 5,000 string indexes', procedure
     var
       i: Integer;
     begin
-      for i := 0 to 1999 do
-        sl.IndexOf(keys[i mod 1000]);
+      for i := 0 to 4999 do
+        sl.IndexOf(keys[i]);
     end);
 
-  Benchmark('Accessing 10,000 strings', procedure
+  Benchmark('Accessing 100,000 strings', procedure
     var
       i: Integer;
     begin
       for i := 0 to 99999 do
-        sl[i mod 1000];
+        sl[i mod 10000];
     end);
 
+  sl.Free;
   WriteLn(' ');
 end;
 
 procedure BenchmarkArgoTree;
 var
-  keys: TStringList;
   tree: TArgoTree;
 begin
   WriteLn('== TArgoTree ==');
 
-  keys := TStringList.Create;
-  RandomStringList(8, 1000, keys);
-  Benchmark('Creating 1,000 strings', procedure
+  Benchmark('Creating 10,000 strings', procedure
     var
       i: Integer;
     begin
@@ -155,20 +158,20 @@ begin
         tree.Add(keys[i]);
     end);
 
-  Benchmark('Finding 2,000 string indexes', procedure
+  Benchmark('Finding 5,000 string indexes', procedure
     var
       i: Integer;
     begin
-      for i := 0 to 1999 do
-        tree[keys[i mod 1000]];
+      for i := 0 to 4999 do
+        tree[keys[i]];
     end);
 
-  Benchmark('Accessing 10,000 strings', procedure
+  Benchmark('Accessing 100,000 strings', procedure
     var
       i: Integer;
     begin
       for i := 0 to 99999 do
-        tree.Names[i mod 1000];
+        tree.Names[i mod 10000];
     end);
 
   WriteLn(' ');
@@ -319,27 +322,24 @@ end;
 procedure BenchmarkAccess;
 var
   obj: TJSONObject;
-  keys: TStringList;
 begin
   WriteLn('== ACCESS ==');
 
   obj := TJSONObject.Create;
-  keys := TStringList.Create;
-  RandomStringList(8, 1000, keys);
-  Benchmark('Creating 1,000 top-level integer properties', procedure
+  Benchmark('Creating 10,000 top-level integer properties', procedure
     var
       i: Integer;
     begin
-      for i := 0 to 999 do
+      for i := 0 to 9999 do
         obj.I[keys[i]] := Random(2147483647);
     end);
 
-  Benchmark('Accessing 10,000 top-level integer properties', procedure
+  Benchmark('Accessing 100,000 top-level integer properties', procedure
     var
       i: Integer;
     begin
       for i := 0 to 99999 do
-        obj.I[keys[i mod 1000]];
+        obj.I[keys[i mod 10000]];
     end);
 
   WriteLn(' ');
@@ -348,32 +348,30 @@ end;
 procedure BenchmarkAccessSO;
 var
   obj: ISuperObject;
-  keys: TStringList;
 begin
   WriteLn('== SUPEROBJECT ACCESS ==');
 
   obj := SO;
-  keys := TStringList.Create;
-  RandomStringList(8, 1000, keys);
-  Benchmark('Creating 1,000 top-level integer properties', procedure
+  Benchmark('Creating 10,000 top-level integer properties', procedure
     var
       i: Integer;
     begin
-      for i := 0 to 999 do
+      for i := 0 to 9999 do
         obj.I[keys[i]] := Random(2147483647);
     end);
 
-  Benchmark('Accessing 10,000 top-level integer properties', procedure
+  Benchmark('Accessing 100,000 top-level integer properties', procedure
     var
       i: Integer;
     begin
       for i := 0 to 99999 do
-        obj.I[keys[i mod 1000]];
+        obj.I[keys[i mod 10000]];
     end);
 end;
 
 begin
   try
+    CreateKeys;
     BenchmarkStringList;
     BenchmarkFastStringList;
     BenchmarkArgoTree;
