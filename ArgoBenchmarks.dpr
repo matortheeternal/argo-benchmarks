@@ -13,6 +13,24 @@ type
 
 var
   keys: TStringList;
+
+function MemoryUsed: cardinal;
+var
+    st: TMemoryManagerState;
+    sb: TSmallBlockTypeState;
+begin
+    GetMemoryManagerState(st);
+    result := st.TotalAllocatedMediumBlockSize + st.TotalAllocatedLargeBlockSize;
+    for sb in st.SmallBlockTypeStates do begin
+        result := result + sb.UseableBlockSize * sb.AllocatedBlockCount;
+    end;
+end;
+
+procedure WriteMemoryUsage;
+begin
+  WriteLn(Format('  %.3fmb', [MemoryUsed / 1048576.0]));
+  Sleep(1000);
+end;
   
 procedure Benchmark(title: String; callback: TProc);
 var
@@ -22,6 +40,7 @@ begin
   time := GetTickCount;
   callback();
   WriteLn(Format('  Completed in %.3fs'#13, [(GetTickCount - time) / 1000.0]));
+  WriteMemoryUsage;
 end;
 
 function LoadString(filename: string): String;
@@ -104,8 +123,8 @@ begin
         sl[i mod 10000];
     end);
 
-  sl.Free;
   WriteLn(' ');
+  sl.Free;
 end;
 
 procedure BenchmarkFastStringList;
@@ -139,8 +158,8 @@ begin
         sl[i mod 10000];
     end);
 
-  sl.Free;
   WriteLn(' ');
+  sl.Free;
 end;
 
 procedure BenchmarkArgoTree;
@@ -179,20 +198,26 @@ end;
 
 procedure BenchmarkDeserialization;
 var
+  lst: TList;
   json: String;
   obj: TJSONObject;
+  i: Integer;
 begin
   WriteLn('== DESERIALIZATION ==');
 
   // 4,286 bytes
+  lst := TList.Create;
   json := LoadString('xtest-2.esp.json');
   Benchmark('xtest-2.esp.json x500', procedure
     var
       i: Integer;
     begin
       for i := 1 to 500 do
-        obj := TJSONObject.Create(json);
+        lst.Add(TJSONObject.Create(json));
     end);
+  for i := 0 to Pred(lst.Count) do
+    TJSONObject(lst[i]).Free;
+  lst.Free;
 
   // 4,909,700 bytes
   json := LoadString('Update.esm.json');
@@ -200,6 +225,7 @@ begin
     begin
       obj := TJSONObject.Create(json);
     end);
+  obj.Free;
 
   // 11,353,142 bytes
   json := LoadString('HearthFires.esm.json');
@@ -207,26 +233,30 @@ begin
     begin
       obj := TJSONObject.Create(json);
     end);
+  obj.Free;
 
   WriteLn(' ');
 end;
 
 procedure BenchmarkDeserializationSO;
 var
+  lst: TInterfaceList;
   json: String;
   obj: ISuperObject;
 begin
   WriteLn('== SUPEROBJECT DESERIALIZATION ==');
 
   // 4,286 bytes
+  lst := TInterfaceList.Create;
   json := LoadString('xtest-2.esp.json');
   Benchmark('xtest-2.esp.json x500', procedure
     var
       i: Integer;
     begin
       for i := 1 to 500 do
-        obj := SO(json);
+        lst.Add(SO(json));
     end);
+  lst.Free;
 
   // 4,909,700 bytes
   json := LoadString('Update.esm.json');
@@ -260,26 +290,29 @@ begin
       i: Integer;
     begin
       for i := 1 to 500 do
-        json := obj.ToString;
+        obj.ToString;
     end);
 
   // 4,909,700 bytes
+  obj.Free;
   json := LoadString('Update.esm.json');
   obj := TJSONObject.Create(json);
   Benchmark('Update.esm.json', procedure
     begin
-      json := obj.ToString;
+      obj.ToString;
     end);
 
   // 11,353,142 bytes
+  obj.Free;
   json := LoadString('HearthFires.esm.json');
   obj := TJSONObject.Create(json);
   Benchmark('HearthFires.esm.json', procedure
     begin
-      json := obj.ToString;
+      obj.ToString;
     end);
 
   WriteLn(' ');
+  obj.Free;
 end;
 
 procedure BenchmarkSerializationSO;
@@ -297,7 +330,7 @@ begin
       i: Integer;
     begin
       for i := 1 to 500 do
-        json := obj.ASJSon;
+        obj.ASJSon;
     end);
 
   // 4,909,700 bytes
@@ -305,7 +338,7 @@ begin
   obj := SO(json);
   Benchmark('Update.esm.json', procedure
     begin
-      json := obj.ASJSon;
+      obj.ASJSon;
     end);
 
   // 11,353,142 bytes
@@ -313,7 +346,7 @@ begin
   obj := SO(json);
   Benchmark('HearthFires.esm.json', procedure
     begin
-      json := obj.ASJSon;
+      obj.ASJSon;
     end);
 
   WriteLn(' ');
@@ -343,6 +376,7 @@ begin
     end);
 
   WriteLn(' ');
+  obj.Free;
 end;
 
 procedure BenchmarkAccessSO;
@@ -367,6 +401,8 @@ begin
       for i := 0 to 99999 do
         obj.I[keys[i mod 10000]];
     end);
+
+  WriteLn(' ');
 end;
 
 begin
