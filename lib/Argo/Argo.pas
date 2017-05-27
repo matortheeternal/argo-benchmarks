@@ -2,6 +2,8 @@ unit Argo;
 
 interface
 
+{$DEFINE FAST_KEY_ACCESS}
+
 uses
   SysUtils, Classes, Variants,
   ArgoTypes;
@@ -812,7 +814,7 @@ end;
 
 function TJSONObject.GetKey(index: Integer): String;
 begin
-  Result := _Keys.Names[index];
+  Result := _Keys.Strings[index];
 end;
 
 function TJSONObject.GetValue(key: String): TJSONValue;
@@ -981,11 +983,10 @@ end;
 function TJSONObject.ToString: String;
 var
   i: Integer;
-  sl: TFastStringList;
 begin
   Result := '{';
   for i := 0 to Pred(_Keys.Count) do
-    Result := Result + '"' + Escape(PWideChar(_Keys.Names[i])) + '":' +
+    Result := Result + '"' + Escape(_Keys.Strings[i]) + '":' +
       TJSONValue(_Values[i]).ToString + ',';
   if _Keys.Count > 0 then
     SetLength(Result, Length(Result) - 1);

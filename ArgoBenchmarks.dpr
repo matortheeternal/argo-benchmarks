@@ -190,7 +190,7 @@ begin
       i: Integer;
     begin
       for i := 0 to 99999 do
-        tree.Names[i mod 10000];
+        tree.Strings[i mod 10000];
     end);
 
   WriteLn(' ');
